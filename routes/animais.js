@@ -1,21 +1,38 @@
 const express = require('express');
 const router = express.Router();
+const mysql = require('../mysql').pool;
 
 module.exports = router
 
 // RETORNA TODOS OS ANIMAIS DE RUA
 router.get('/', (req, res, next) => {
     res.status(200).send({
-        mensagem: 'Buscando todos os animais de rua...'
+        mensagem: 'Buscando todos os bichos de estimação...'
     });
 });
 
 // INSERE ANIMAIS
 router.post('/', (req, res, next) => {
-    res.status(201).send({
-        mensagem: 'Adicionando novos animais de rua...'
-    });
+     mysql.getConnection((error, conn) => {
+         conn.query(
+         'INSERT INTO animais (nome, especie, sexo, castrado, local) VALUES (?,?,?,?,?)',
+         [req.body.nome, req.body.especie, req.body.sexo, req.body.castrado, req.body.local],
+         (error, resultado, field) => {
+             conn.release();
+             if (error) {
+                 return res.status(500).send({
+                     error: error,
+                     response: null
+                 });
+             }
 
+             res.status(201).send({
+                mensagem: 'Novo bicho de estimação adicionado!',
+                animalInserido: animal
+         } 
+       )
+     })    
+    });
 });
 
 // RETORNA OS DADOS DE UM ANIMAL ESPECIFICO
