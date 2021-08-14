@@ -2,7 +2,7 @@
     "env": {
         "MYSQL_USER": "root",
         "MYSQL_PASSWORD": 123456,
-        "MYSQL_DATABASE":"monitoranimais",
+        "MYSQL_DATABASE":"bichos",
         "MYSQL_HOST":"localhost",
         "MYSQL_PORT": 3306
     }

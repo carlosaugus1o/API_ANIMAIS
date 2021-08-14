@@ -6,29 +6,36 @@ module.exports = router
 
 // RETORNA TODOS OS ANIMAIS DE RUA
 router.get('/', (req, res, next) => {
-    res.status(200).send({
-        mensagem: 'Buscando todos os bichos de estimação...'
-    });
+   mysql.getConnection((error, conn) => {
+      if (error) { return res.status(500).send({ error: error})}
+      conn.query(
+          'SELECT * FROM animaistable',
+          (error, resultado, fields) => {
+            if (error) { return res.status(500).send({ error: error})}
+            return res.status(200).send({response: resultado})
+          }
+      )
+  })
+
+
 });
 
 // INSERE ANIMAIS
 router.post('/', (req, res, next) => {
      mysql.getConnection((error, conn) => {
+         if (error) { return res.status(500).send({ error: error})}
          conn.query(
-         'INSERT INTO animais (nome, especie, sexo, castrado, local) VALUES (?,?,?,?,?)',
+         'INSERT INTO animaistable (nome, especie, sexo, castrado, local) VALUES (?,?,?,?,?)',
          [req.body.nome, req.body.especie, req.body.sexo, req.body.castrado, req.body.local],
          (error, resultado, field) => {
              conn.release();
-             if (error) {
-                 return res.status(500).send({
-                     error: error,
-                     response: null
-                 });
+             if (error) { return res.status(500).send({ error: error, response: null });
              }
 
              res.status(201).send({
                 mensagem: 'Novo bicho de estimação adicionado!',
-                animalInserido: animal
+                id_animal: resultado.insertId,
+                nomeanimal: req.body.nome
          } 
        )
      })    
@@ -37,32 +44,76 @@ router.post('/', (req, res, next) => {
 
 // RETORNA OS DADOS DE UM ANIMAL ESPECIFICO
 router.get('/:id_animal', (req, res, next) => {
-    const id = req.params.id_animal
-
-    if (id === 'Cacazinho') {
-        res.status(200).send({
-            mensagem: 'Você encontrou o gato dourado!',
-            id: id
-        });
-    } else {
-        res.status(200).send({
-            mensagem: 'Você buscou por um animal.'
-        });
-    }
+    mysql.getConnection((error, conn) => {
+        if (error) { return res.status(500).send({ error: error})}
+        conn.query(
+            'SELECT * FROM animaistable WHERE idanimaistable = ?;',
+            [req.params.id_animal],
+            (error, resultado, fields) => {
+              if (error) { return res.status(500).send({ error: error})}
+              return res.status(200).send({response: resultado})
+        }
+        );
+    })
 });
     
 // ALTERAÇÕES NOS DADOS DOS ANIMAIS
 router.patch('/', (req, res, next) => {
-    res.status(201).send({
-        mensagem: 'Fazendo patch nos animais de rua...'
-    });
+    mysql.getConnection((error, conn) => {
+        if (error) { return res.status(500).send({ error: error})}
+        conn.query(
+            `UPDATE animaistable
+                SET nome = ?,
+                    especie = ?,
+                    sexo = ?,
+                    castrado = ?,
+                    local = ?
+                    WHERE idanimaistable = ?`,
+        [
+            req.body.nome, 
+            req.body.especie, 
+            req.body.sexo, 
+            req.body.castrado, 
+            req.body.local, 
+            req.body.idanimaistable
+        ],
+        (error, resultado, field) => {
+            conn.release();
+            if (error) { return res.status(500).send({ error: error, response: null });
+            }
+
+            res.status(202).send({
+               mensagem: 'Dados do bicho de estimação alterados!',
+               id_animal: req.body.idanimaistable,
+               nomeanimal: req.body.nome
+        } 
+      )
+    })    
+   });
 });
 
 // REMOVENDO ANIMAIS
 router.delete('/', (req, res, next) => {
-    res.status(201).send({
-        mensagem: 'Fazendo delete nos animais de rua...'
-    });
+    mysql.getConnection((error, conn) => {
+        if (error) { return res.status(500).send({ error: error})}
+        conn.query(
+            `DELETE FROM animaistable WHERE idanimaistable = ?`,
+        [
+            req.body.idanimaistable
+        ],
+        (error, resultado, field) => {
+            conn.release();
+            if (error) { return res.status(500).send({ error: error, response: null });
+            }
+
+            res.status(202).send({
+               mensagem: 'Dados do bicho de estimação excluídos!',
+               id_animal: req.body.idanimaistable,
+               nomeanimal: req.body.nome
+        } 
+      )
+    })    
+   });
 });
 
 
